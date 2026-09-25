@@ -13,6 +13,12 @@ struct ContentView: View {
     
     @State private var showingScore = false
     @State private var scoreTitle = ""
+    @State private var scoreValue = 0
+    @State private var flagTappedIndex = 0
+    @State private var countrieTapped = ""
+    @State private var numQuestion = 0
+    @State private var showingReset = false
+    @State private var resetText = ""
     
     var body: some View {
         ZStack {
@@ -41,7 +47,12 @@ struct ContentView: View {
                     
                     ForEach(0..<3) { number in
                         Button {
+                            flagTappedIndex = number
+                            countrieTapped = countries[flagTappedIndex]
                             flagTapped(number)
+                            
+                            reset()
+                            
                         } label: {
                             Image(countries[number])
                                 .clipShape(.capsule)
@@ -57,7 +68,7 @@ struct ContentView: View {
                 Spacer()
                 Spacer()
                 
-                Text("Score: ???")
+                Text("Score: \(scoreValue)")
                     .foregroundStyle(.white)
                     .font(.title.bold())
                 
@@ -66,24 +77,51 @@ struct ContentView: View {
             .padding()
         }.alert(scoreTitle, isPresented: $showingScore) {
             Button("Continue", action: askQuetion)
-        } message: {
-            Text("Your socore is ???")
-        }
+            } message: {
+                Text("Your socore is \(scoreValue)")
+            }
+            .alert(resetText, isPresented: $showingReset) {
+                Button("Reset") {
+                    reset()
+                    askQuetion()
+                }
+            }
     }
     
     func flagTapped (_ number: Int) {
-        if number == correctAnswer {
-            scoreTitle = "Correct"
+        numQuestion += 1
+        if numQuestion != 8 {
+            showingScore = true
+            if number == correctAnswer {
+                scoreTitle = "Correct"
+                scoreValue += 1
+                
+            } else {
+                scoreTitle = "Wrong! Thats the score of \(countrieTapped)"
+            }
         } else {
-            scoreTitle = "Wrong"
+            if number == correctAnswer {
+                scoreValue += 1
+            }
+            showingScore = false
         }
         
-        showingScore = true
     }
     
     func askQuetion() {
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+    }
+    
+    func reset() {
+        if numQuestion == 8 {
+            numQuestion = 0
+            showingReset = true
+            resetText = "End of game! Your final score is \(scoreValue)"
+            scoreValue = 0
+        } else {
+            showingReset = false
+        }
     }
 }
 
